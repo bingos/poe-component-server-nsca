@@ -1,0 +1,31 @@
+This software was in part adapted from C source written by Ethan Galstad - 
+basically the send_message routine, the crc routines and the xor encrypt routine.
+The rest was written by P Kent. Bits based on Ethan's work are covered by the GPL:
+
+         * Copyright (c) 1999-2001 Ethan Galstad (netsaint@netsaint.org)
+         * Last Modified: 11-19-2001
+         * License:
+         * This program is free software; you can redistribute it and/or modify
+         * it under the terms of the GNU General Public License as published by
+         * the Free Software Foundation; either version 2 of the License, or
+         * (at your option) any later version.
+         *
+         * This program is distributed in the hope that it will be useful,
+         * but WITHOUT ANY WARRANTY; without even the implied warranty of
+         * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+         * GNU General Public License for more details.
+         *
+         * You should have received a copy of the GNU General Public License
+         * along with this program; if not, write to the Free Software
+         * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+The GPL is in the file 'GPL' at the root level of this ditribution.
+
+Bits written by P Kent are covered by this:
+Copyright (c) 2001 P Kent. All rights reserved.
+This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself. 
+POE Component implementation is:
+Copyright (c) 2007 Chris Williams
+This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself. 
+ 
+END OF FILE
