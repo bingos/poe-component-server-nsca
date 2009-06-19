@@ -1,6 +1,10 @@
 Changelog for POE::Component::Server::NSCA
 ==========================================
 
+0.08	Fri Jun 19 09:45:58 BST 2009
+	- Updates to the Makefile.PL meta generation. 
+	- POD tidying.
+
 0.06	Tue Sep  9 13:08:42 BST 2008
 	- Issue with the SYNOPSIS code pointed out in RT #39115
 	  by Andreas Fett.
