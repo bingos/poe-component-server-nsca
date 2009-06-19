@@ -5,10 +5,8 @@ author 'Chris Williams <chris@bingosnet.co.uk>';
 license 'perl';
 version_from 'lib/POE/Component/Server/NSCA.pm';
 abstract_from 'lib/POE/Component/Server/NSCA.pm';
+readme_from 'lib/POE/Component/Server/NSCA.pm';
 build_requires 'Test::More' => 0.47;
-requires 'warnings::compat' => 0 if $] < 5.006;
-requires 'Carp' => 0;
-requires 'Socket' => 0;
 requires 'Net::Netmask' => 1.9015;
 requires 'Math::Random' => 0.70;
 requires 'POE'    => 0.38;
@@ -25,4 +23,6 @@ if ( $send_nsca and -e $send_nsca ) {
   print FH "$send_nsca\n";
   close FH;
 }
+auto_provides;
+githubmeta;
 WriteAll();

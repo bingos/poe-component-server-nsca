@@ -9,7 +9,7 @@ use Math::Random;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Stream);
 use vars qw($VERSION);
 
-$VERSION='0.06';
+$VERSION='0.08';
 
 use constant MAX_INPUT_BUFFER =>        2048    ; # /* max size of most buffers we use */
 use constant MAX_HOST_ADDRESS_LENGTH => 256     ; # /* max size of a host address */
@@ -432,7 +432,8 @@ sub _decrypt_mcrypt {
   return $crypted;
 }
 
-1;
+'Hon beiriant goes at hun ar ddeg';
+
 __END__
 
 =head1 NAME
@@ -510,7 +511,7 @@ encryption using the L<Mcrypt> module.
 
 =over
 
-=item spawn
+=item C<spawn>
 
 Takes a number of parameters, mandatory ones are indicated:
 
@@ -562,16 +563,16 @@ Methods 2-26 require that the L<Mcrypt> module is installed.
 
 =over
 
-=item session_id
+=item C<session_id>
 
 Returns the L<POE::Session> ID of the component.
 
-=item shutdown
+=item C<shutdown>
 
 Terminates the component. Shuts down the listener and disconnects connected clients and
 unregisters registered sessions.
 
-=item getsockname
+=item C<getsockname>
 
 Access to the L<POE::Wheel::SocketFactory> method of the underlying listening socket.
 
@@ -583,7 +584,7 @@ These are events from other POE sessions that our component will handle:
 
 =over
 
-=item register
+=item C<register>
 
 This will register the sending session. Takes a number of parameters:
 
@@ -593,7 +594,7 @@ This will register the sending session. Takes a number of parameters:
 The component will increment the refcount of the calling session to make sure it hangs around for events.
 Therefore, you should use either C<unregister> or C<shutdown> to terminate registered sessions.
 
-=item unregister
+=item C<unregister>
 
 This will unregister the sending session.
 
@@ -605,7 +606,7 @@ Registered sessions will receive events with the following parameters:
 
 =over
 
-=item ARG0
+=item C<ARG0>
 
 ARG0 will contain a hashref with the following key/values:
 
@@ -618,7 +619,7 @@ ARG0 will contain a hashref with the following key/values:
  'crc32', the checksum provided by the client;
  'checksum', the checksum as the poco calculated it;
 
-=item ARG1
+=item C<ARG1>
 
 ARG1 will contain the value of the 'context' that was specified ( if applicable ) when the session
 registered.
@@ -635,6 +636,12 @@ Which was originally derived from work by Ethan Galstad.
 
 See the LICENSE file for details.
 
+=head1 LICENSE
+
+Copyright E<copy> Chris Williams, P Kent and Ethan Galstad.
+
+This module may be used, modified, and distributed under the same terms as Perl itself. Please see the license that came with your Perl distribution for details.
+
 =head1 SEE ALSO
 
 L<POE>
@@ -646,3 +653,5 @@ L<Net::Nsca>
 L<Mcrypt>
 
 L<http://www.nagios.org/>
+
+=cut
