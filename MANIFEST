@@ -25,4 +25,3 @@ t/03_xor.t
 t/04_send_nsca.t
 t/99_pod.t
 t/99_pod_coverage.t
-t/99_test_kwalitee.t

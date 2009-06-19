@@ -70,7 +70,7 @@ DESCRIPTION
     optionally supports encryption using the Mcrypt module.
 
 CONSTRUCTOR
-    spawn
+    "spawn"
         Takes a number of parameters, mandatory ones are indicated:
 
           'password', password that should be used to encrypt the packet, mandatory;
@@ -117,21 +117,21 @@ CONSTRUCTOR
         Methods 2-26 require that the Mcrypt module is installed.
 
 METHODS
-    session_id
+    "session_id"
         Returns the POE::Session ID of the component.
 
-    shutdown
+    "shutdown"
         Terminates the component. Shuts down the listener and disconnects
         connected clients and unregisters registered sessions.
 
-    getsockname
+    "getsockname"
         Access to the POE::Wheel::SocketFactory method of the underlying
         listening socket.
 
 INPUT EVENTS
     These are events from other POE sessions that our component will handle:
 
-    register
+    "register"
         This will register the sending session. Takes a number of
         parameters:
 
@@ -142,13 +142,13 @@ INPUT EVENTS
         make sure it hangs around for events. Therefore, you should use
         either "unregister" or "shutdown" to terminate registered sessions.
 
-    unregister
+    "unregister"
         This will unregister the sending session.
 
 OUTPUT EVENTS
     Registered sessions will receive events with the following parameters:
 
-    ARG0
+    "ARG0"
         ARG0 will contain a hashref with the following key/values:
 
          'version', the version of NSCA protocol in use. Will be 3;
@@ -160,7 +160,7 @@ OUTPUT EVENTS
          'crc32', the checksum provided by the client;
          'checksum', the checksum as the poco calculated it;
 
-    ARG1
+    "ARG1"
         ARG1 will contain the value of the 'context' that was specified ( if
         applicable ) when the session registered.
 
@@ -172,6 +172,13 @@ AUTHOR
     Which was originally derived from work by Ethan Galstad.
 
     See the LICENSE file for details.
+
+LICENSE
+    Copyright © Chris Williams, P Kent and Ethan Galstad.
+
+    This module may be used, modified, and distributed under the same terms
+    as Perl itself. Please see the license that came with your Perl
+    distribution for details.
 
 SEE ALSO
     POE
