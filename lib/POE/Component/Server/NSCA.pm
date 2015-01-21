@@ -6,7 +6,7 @@ use Socket;
 use Carp;
 use Net::Netmask;
 use Math::Random;
-use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Stream);
+use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Block);
 use vars qw($VERSION);
 
 $VERSION='0.08';
@@ -152,7 +152,7 @@ sub _start {
   else {
 	$kernel->refcount_increment( $self->{session_id} => __PACKAGE__ );
   }
-  $self->{filter} = POE::Filter::Stream->new();
+  $self->{filter} = POE::Filter::Block->new( BlockSize => SIZEOF_DATA_PACKET );
   $self->{listener} = POE::Wheel::SocketFactory->new(
       ( defined $self->{address} ? ( BindAddress => $self->{address} ) : () ),
       ( defined $self->{port} ? ( BindPort => $self->{port} ) : ( BindPort => 5667 ) ),
@@ -292,14 +292,14 @@ sub _conn_alarm {
 sub _conn_input {
   my ($kernel,$self,$packet,$id) = @_[KERNEL,OBJECT,ARG0,ARG1];
   return unless $self->_conn_exists( $id );
-  my $client = delete $self->{clients}->{ $id };
-  delete $client->{wheel};
+  my $client = $self->{clients}->{ $id };
   $kernel->alarm_remove( delete $client->{alarm} );
   return unless length( $packet ) == SIZEOF_DATA_PACKET; # wrong packet size received
   my $input = _decrypt( $packet, $self->{encryption}, $client->{iv}, $self->{password} );
   return unless $input; # something wrong with the decryption
   my $version = unpack 'n', substr $input, 0, 4;
-  return unless $version == 3; # Wrong version received
+  return unless $version == 3 or $client->{version_already_checked}; # Wrong version received
+  $client->{version_already_checked} = 1;
   my $crc32 = unpack 'N', substr $input, 4, 4;
   my $ts = unpack 'N', substr $input, 8, 4;
   my $rc = unpack 'n', substr $input, 12, 2;
@@ -308,13 +308,16 @@ sub _conn_input {
   my $checksum = _calculate_crc32( $firstbit . pack('N', 0) . $secondbit );
   my @data = unpack 'a[64]a[128]a[512]', substr $input, 14;
   s/\000.*$// for @data;
-  $client->{version} = $version;
-  $client->{crc32} = $crc32;
-  $client->{checksum} = $checksum;
-  $client->{return_code} = $rc;
-  $client->{$_} = shift @data for qw(host_name svc_description plugin_output);
-  delete $client->{$_} for qw(peerport sockaddr sockport ts iv);
-  $kernel->post( $_, $self->{sessions}->{$_}->{event}, $client, $self->{sessions}->{$_}->{context} )
+  my $result = {
+   version      => $version,
+   crc32        => $crc32,
+   checksum     => $checksum,
+   return_code  => $rc,
+   timestamp    => $ts,
+  };
+  $result->{$_} = shift @data for qw(host_name svc_description plugin_output);
+  $result->{$_} = $client->{$_} for qw(peeraddr peerport sockaddr sockport ts iv);
+  $kernel->post( $_, $self->{sessions}->{$_}->{event}, $result, $self->{sessions}->{$_}->{context} )
 	for keys %{ $self->{sessions} };
   return;
 }
@@ -618,8 +621,10 @@ ARG0 will contain a hashref with the following key/values:
  'return_code', the result code of the check;
  'plugin_output', any output from the check plugin;
  'peeraddr', the IP address of the client that gave us the check information;
+ 'peerport', the IP address of the client that gave us the check information;
  'crc32', the checksum provided by the client;
  'checksum', the checksum as the poco calculated it;
+ 'timestamp', the clients timestamp;
 
 =item C<ARG1>
 
