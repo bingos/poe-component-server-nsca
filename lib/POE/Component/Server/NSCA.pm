@@ -63,31 +63,31 @@ eval {
 # Lookups for loading.
 my %mcrypts =   (       ENCRYPT_NONE,		"none",
 			ENCRYPT_XOR,		"xor",
-			ENCRYPT_DES,            "des",
-                        ENCRYPT_3DES,           "3des",
-                        ENCRYPT_CAST128,        "cast-128",
-                        ENCRYPT_CAST256,        "cast-256",
-                        ENCRYPT_XTEA,           "xtea",
-                        ENCRYPT_3WAY,           "threeway",
-                        ENCRYPT_BLOWFISH,       "blowfish",
-                        ENCRYPT_TWOFISH,        "twofish",
-                        ENCRYPT_LOKI97,         "loki97",
-                        ENCRYPT_RC2,            "rc2",
-                        ENCRYPT_ARCFOUR,        "arcfour",
-                        ENCRYPT_RC6,            "rc6",
-                        ENCRYPT_RIJNDAEL128,    "rijndael-128",
-                        ENCRYPT_RIJNDAEL192,    "rijndael-192",
-                        ENCRYPT_RIJNDAEL256,    "rijndael-256",
-                        ENCRYPT_MARS,           "mars",
-                        ENCRYPT_PANAMA,         "panama",
-                        ENCRYPT_WAKE,           "wake",
-                        ENCRYPT_SERPENT,        "serpent",
-                        ENCRYPT_IDEA,           "idea",
-                        ENCRYPT_ENIGMA,         "engima",
-                        ENCRYPT_GOST,           "gost",
-                        ENCRYPT_SAFER64,        "safer-sk64",
-                        ENCRYPT_SAFER128,       "safer-sk128",
-                        ENCRYPT_SAFERPLUS,      "saferplus",
+			ENCRYPT_DES,            "DES",
+                        ENCRYPT_3DES,           "3DES",
+                        ENCRYPT_CAST128,        "CAST_128",
+                        ENCRYPT_CAST256,        "CAST-256",
+                        ENCRYPT_XTEA,           "XTEA",
+                        ENCRYPT_3WAY,           "THREEWAY",
+                        ENCRYPT_BLOWFISH,       "BLOWFISH",
+                        ENCRYPT_TWOFISH,        "TWOFISH",
+                        ENCRYPT_LOKI97,         "LOKI97",
+                        ENCRYPT_RC2,            "RC2",
+                        ENCRYPT_ARCFOUR,        "ARCFOUR",
+                        ENCRYPT_RC6,            "RC6",
+                        ENCRYPT_RIJNDAEL128,    "RIJNDAEL_128",
+                        ENCRYPT_RIJNDAEL192,    "RIJNDAEL_192",
+                        ENCRYPT_RIJNDAEL256,    "RIJNDAEL_256",
+                        ENCRYPT_MARS,           "MARS",
+                        ENCRYPT_PANAMA,         "PANAMA",
+                        ENCRYPT_WAKE,           "WAKE",
+                        ENCRYPT_SERPENT,        "SERPENT",
+                        ENCRYPT_IDEA,           "IDEA",
+                        ENCRYPT_ENIGMA,         "ENGIMA",
+                        ENCRYPT_GOST,           "GOST",
+                        ENCRYPT_SAFER64,        "SAFER_SK64",
+                        ENCRYPT_SAFER128,       "SAFER_SK128",
+                        ENCRYPT_SAFERPLUS,      "SAFERPLUS",
                 );
 
 sub spawn {
@@ -414,7 +414,7 @@ sub _decrypt_mcrypt {
         my $routine = $mcrypts{$encryption_method};
         eval {
            # This sometimes dies with 'mcrypt is not of type MCRYPT'.
-           my $td = Mcrypt->new( algorithm => $routine, mode => 'cfb', verbose => 0 );
+           my $td = Mcrypt->new( algorithm => &{\&{"Mcrypt::".$routine}}(), mode => Mcrypt::CFB(), verbose => 0 );
            my $key = $password;
            my $iv = substr $iv_salt, 0, $td->{IV_SIZE};
            if( defined( $td ) ){
@@ -428,6 +428,8 @@ sub _decrypt_mcrypt {
         };
 	warn "$@\n" if $@;
      }
+  } else {
+    warn "Mcrypt module missing\n";
   }
   return $crypted;
 }
