@@ -8,13 +8,14 @@ use Socket;
 use Carp;
 use Net::Netmask;
 use Math::Random;
-use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Block);
+use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Stream);
 
 use constant MAX_INPUT_BUFFER =>        2048    ; # /* max size of most buffers we use */
 use constant MAX_HOST_ADDRESS_LENGTH => 256     ; # /* max size of a host address */
 use constant MAX_HOSTNAME_LENGTH =>     64      ;
 use constant MAX_DESCRIPTION_LENGTH =>  128;
-use constant MAX_PLUGINOUTPUT_LENGTH => 512;
+use constant OLD_PLUGINOUTPUT_LENGTH => 512;
+use constant MAX_PLUGINOUTPUT_LENGTH => 4096;
 use constant MAX_PASSWORD_LENGTH =>     512;
 use constant TRANSMITTED_IV_SIZE =>     128;
 use constant SIZEOF_U_INT32_T   => 4;
@@ -24,6 +25,7 @@ use constant SIZEOF_INIT_PACKET => TRANSMITTED_IV_SIZE + SIZEOF_U_INT32_T;
 use constant PROBABLY_ALIGNMENT_ISSUE => 4;
 
 use constant SIZEOF_DATA_PACKET => SIZEOF_INT16_T + SIZEOF_U_INT32_T + SIZEOF_U_INT32_T + SIZEOF_INT16_T + MAX_HOSTNAME_LENGTH + MAX_DESCRIPTION_LENGTH + MAX_PLUGINOUTPUT_LENGTH + PROBABLY_ALIGNMENT_ISSUE;
+use constant SIZEOF_OLD_PACKET  => SIZEOF_INT16_T + SIZEOF_U_INT32_T + SIZEOF_U_INT32_T + SIZEOF_INT16_T + MAX_HOSTNAME_LENGTH + MAX_DESCRIPTION_LENGTH + OLD_PLUGINOUTPUT_LENGTH + PROBABLY_ALIGNMENT_ISSUE;
 
 use constant ENCRYPT_NONE =>            0       ; # /* no encryption */
 use constant ENCRYPT_XOR =>             1       ; # /* not really encrypted, just obfuscated */
@@ -151,7 +153,8 @@ sub _start {
   else {
 	$kernel->refcount_increment( $self->{session_id} => __PACKAGE__ );
   }
-  $self->{filter} = POE::Filter::Block->new( BlockSize => SIZEOF_DATA_PACKET );
+  #$self->{filter} = POE::Filter::Block->new( BlockSize => SIZEOF_DATA_PACKET );
+  $self->{filter} = POE::Filter::Stream->new();
   $self->{listener} = POE::Wheel::SocketFactory->new(
       ( defined $self->{address} ? ( BindAddress => $self->{address} ) : () ),
       ( defined $self->{port} ? ( BindPort => $self->{port} ) : ( BindPort => 5667 ) ),
@@ -293,8 +296,11 @@ sub _conn_input {
   return unless $self->_conn_exists( $id );
   my $client = $self->{clients}->{ $id };
   $kernel->alarm_remove( delete $client->{alarm} );
-  return unless length( $packet ) == SIZEOF_DATA_PACKET; # wrong packet size received
-  my $input = _decrypt( $packet, $self->{encryption}, $client->{iv}, $self->{password} );
+  my $data_packet_length = SIZEOF_DATA_PACKET;
+  if ( length( $packet ) == SIZEOF_OLD_PACKET ) {
+    $data_packet_length = SIZEOF_OLD_PACKET;
+  }
+  my $input = _decrypt( $packet, $self->{encryption}, $client->{iv}, $self->{password}, $data_packet_length );
   return unless $input; # something wrong with the decryption
   my $version = unpack 'n', substr $input, 0, 4;
   return unless $version == 3 or $client->{version_already_checked}; # Wrong version received
@@ -358,14 +364,14 @@ sub _generate_crc32_table {
 
 # central switchboard for encryption methods.
 sub _decrypt {
-  my ($data_packet_string, $encryption_method, $iv_salt, $password) = @_;
+  my ($data_packet_string, $encryption_method, $iv_salt, $password, $data_packet_length) = @_;
 
   my $crypted;
   if ($encryption_method == ENCRYPT_NONE) {
        $crypted = $data_packet_string;
   }
   elsif ($encryption_method == ENCRYPT_XOR) {
-       $crypted = _decrypt_xor($data_packet_string, $iv_salt, $password);
+       $crypted = _decrypt_xor($data_packet_string, $iv_salt, $password, $data_packet_length);
   }
   else {
        $crypted = _decrypt_mcrypt( $data_packet_string, $encryption_method, $iv_salt, $password );
@@ -374,7 +380,7 @@ sub _decrypt {
 }
 
 sub _decrypt_xor {
-  my ($data_packet_string, $iv_salt, $password) = @_;
+  my ($data_packet_string, $iv_salt, $password, $data_packet_length) = @_;
 
   my @out = split(//, $data_packet_string);
   my @salt_iv = split(//, $iv_salt);
@@ -384,7 +390,7 @@ sub _decrypt_xor {
   my $x = 0;
 
   #/* rotate over IV we received from the server... */
-  while ($y < SIZEOF_DATA_PACKET) {
+  while ($y < $data_packet_length) {
      #/* keep rotating over IV */
      $out[$y] = $out[$y] ^ $salt_iv[$x % scalar(@salt_iv)];
 
@@ -395,7 +401,7 @@ sub _decrypt_xor {
   #/* rotate over password... */
   $y=0;
   $x=0;
-  while ($y < SIZEOF_DATA_PACKET){
+  while ($y < $data_packet_length){
      #/* keep rotating over password */
      $out[$y] = $out[$y] ^ $salt_pw[$x % scalar(@salt_pw)];
 

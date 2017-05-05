@@ -18,7 +18,7 @@ isa_ok( $poco, 'POE::Component::Server::NSCA' );
 POE::Session->create(
   package_states => [
 	'main' => [qw(
-			_start 
+			_start
 			_stop
 			_alert
 			_result
@@ -56,7 +56,7 @@ sub _stop {
 
 sub _alert {
   my ($kernel,$result) = @_[KERNEL,ARG0];
-  
+
   ok( $result->{'plugin_output'} eq 'Chewing okay', 'Chewing okay' );
   ok( $result->{'version'} == 3, 'Right version number' );
   ok( $result->{'return_code'} == 0, 'Return code is fine' );
