@@ -1,5 +1,7 @@
 package POE::Component::Server::NSCA;
 
+#ABSTRACT: a POE Component that implements NSCA daemon functionality
+
 use strict;
 use warnings;
 use Socket;
@@ -7,9 +9,6 @@ use Carp;
 use Net::Netmask;
 use Math::Random;
 use POE qw(Wheel::SocketFactory Wheel::ReadWrite Filter::Block);
-use vars qw($VERSION);
-
-$VERSION='0.08';
 
 use constant MAX_INPUT_BUFFER =>        2048    ; # /* max size of most buffers we use */
 use constant MAX_HOST_ADDRESS_LENGTH => 256     ; # /* max size of a host address */
@@ -148,7 +147,7 @@ sub _start {
   $self->{session_id} = $_[SESSION]->ID();
   if ( $self->{alias} ) {
 	$kernel->alias_set( $self->{alias} );
-  } 
+  }
   else {
 	$kernel->refcount_increment( $self->{session_id} => __PACKAGE__ );
   }
@@ -249,14 +248,14 @@ sub _accept_client {
   );
 
   return unless $wheel;
-  
+
   my $id = $wheel->ID();
   my $time = time();
   my $iv = join '', random_uniform_integer(128,0,9);
   my $init_packet = $iv . pack 'N', $time;
-  $self->{clients}->{ $id } = 
-  { 
-	wheel    => $wheel, 
+  $self->{clients}->{ $id } =
+  {
+	wheel    => $wheel,
 	peeraddr => $peeraddr,
 	peerport => $peerport,
 	sockaddr => $sockaddr,
@@ -272,7 +271,7 @@ sub _accept_client {
 sub _conn_exists {
   my ($self,$wheel_id) = @_;
   return 0 unless $wheel_id and defined $self->{clients}->{ $wheel_id };
-  return 1; 
+  return 1;
 }
 
 sub _conn_error {
@@ -347,7 +346,7 @@ sub _generate_crc32_table {
      for (my $j = 8; $j > 0; $j--) {
         if ($crc & 1) {
           $crc = ($crc >> 1) ^ $poly;
-        } 
+        }
 	else {
           $crc = ($crc >> 1);
         }
@@ -364,10 +363,10 @@ sub _decrypt {
   my $crypted;
   if ($encryption_method == ENCRYPT_NONE) {
        $crypted = $data_packet_string;
-  } 
+  }
   elsif ($encryption_method == ENCRYPT_XOR) {
        $crypted = _decrypt_xor($data_packet_string, $iv_salt, $password);
-  } 
+  }
   else {
        $crypted = _decrypt_mcrypt( $data_packet_string, $encryption_method, $iv_salt, $password );
   }
@@ -439,11 +438,7 @@ sub _decrypt_mcrypt {
 
 'Hon beiriant goes at hun ar ddeg';
 
-__END__
-
-=head1 NAME
-
-POE::Component::Server::NSCA - a POE Component that implements NSCA daemon functionality
+=pod
 
 =head1 SYNOPSIS
 
@@ -633,21 +628,11 @@ registered.
 
 =back
 
-=head1 AUTHOR
-
-Chris C<BinGOs> Williams <chris@bingosnet.co.uk>
+=head1 PROVENANCE
 
 Based on L<Net::Nsca> by P Kent
 
 Which was originally derived from work by Ethan Galstad.
-
-See the LICENSE file for details.
-
-=head1 LICENSE
-
-Copyright E<copy> Chris Williams, P Kent and Ethan Galstad.
-
-This module may be used, modified, and distributed under the same terms as Perl itself. Please see the license that came with your Perl distribution for details.
 
 =head1 SEE ALSO
 
