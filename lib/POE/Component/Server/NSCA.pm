@@ -144,12 +144,12 @@ sub getsockname {
   return $_[0]->{listener}->getsockname();
 }
 
-sub length_encoder {
+sub _length_encoder {
   my $stuff = shift;
   return;
 }
 
-sub length_decoder {
+sub _length_decoder {
   my $stuff = shift;
   my $expected;
 
@@ -177,7 +177,7 @@ sub _start {
   else {
 	$kernel->refcount_increment( $self->{session_id} => __PACKAGE__ );
   }
-  $self->{filter} = POE::Filter::Block->new(LengthCodec => [ \&length_encoder, \&length_decoder ]);
+  $self->{filter} = POE::Filter::Block->new(LengthCodec => [ \&_length_encoder, \&_length_decoder ]);
   $self->{listener} = POE::Wheel::SocketFactory->new(
       ( defined $self->{address} ? ( BindAddress => $self->{address} ) : () ),
       ( defined $self->{port} ? ( BindPort => $self->{port} ) : ( BindPort => 5667 ) ),
